@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "Vals.h"
+#include "main.h"
 
 typedef struct{
     uint8_t A;
