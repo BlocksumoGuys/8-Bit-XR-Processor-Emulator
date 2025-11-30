@@ -12,6 +12,27 @@ typedef struct{
     uint8_t halt;
 }CPU;
 
+void cpu_Reset(CPU *cpu);
+void cpu_load(CPU *cpu, uint8_t *prog, size_t size);
+void cpu_load_execute(CPU *cpu, uint8_t opcode);
+void cpu_running(CPU *cpu);
+
+
+int main(){
+    CPU cpu;
+    cpu_Reset(&cpu);
+    uint8_t prog[] = {
+        ADDI, 9, 4, 7, 
+        0xFF
+    };
+
+    cpu_load(&cpu, prog, sizeof(prog));
+    uint8_t t = (&cpu)->memory[9];
+    printf("%d", t);
+
+    return 0;
+}
+
 void cpu_Reset(CPU *cpu){
     cpu->A = 0;
     cpu->B = 0;
@@ -25,6 +46,8 @@ void cpu_load(CPU *cpu, uint8_t *prog, size_t size){
     for(uint8_t i = 0; i < size; i++){
         cpu->memory[i] = prog[i];
     }
+    cpu->halt = 0;
+    cpu_running(cpu);
 }
 
 void cpu_load_execute(CPU *cpu, uint8_t opcode){
@@ -130,19 +153,4 @@ void cpu_running(CPU *cpu){
         }
         cpu_load_execute(cpu, opcode);
     }
-}
-
-int main(){
-    CPU cpu;
-    uint8_t prog[] = {
-        ADDI, 9, 6, 7,
-        0xFF
-    };
-
-    cpu_Reset(&cpu);
-    cpu_load(&cpu, prog, sizeof(prog));
-    cpu_running(&cpu);
-    printf("%d", (&cpu)->memory[9]);
-
-    return 0;
 }
