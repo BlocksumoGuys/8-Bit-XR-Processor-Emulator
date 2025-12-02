@@ -17,6 +17,14 @@ typedef enum{
     BEQ = 0x11,
     BEQZ = 0x12,
     NBEQ = 0x13,
+    DEA = 0x14,
+    DEB = 0x15,
+    DEC = 0x16,
+    INCRA = 0x17,
+    INCRB = 0x18,
+    INCR = 0x19,
+    STA = 0x20,
+    STB = 0x21,
 }INSTRUCTIONS;
 
 #endif
