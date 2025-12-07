@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include "main.h"
 
 typedef struct{
@@ -15,47 +16,47 @@ typedef struct{
 void cpu_Reset(CPU *cpu);
 void cpu_load(CPU *cpu, uint8_t *prog, size_t size);
 void cpu_load_execute(CPU *cpu, uint8_t opcode);
-void cpu_running(CPU *cpu);
-
 
 int main(){
     CPU cpu;
+    clock_t start = clock();
     cpu_Reset(&cpu);
     uint8_t prog[] = {
-        ADDI, 9, 4, 7, 
-        0xFF
+        ADDI, 9, 4, 7,
+        END
     };
-
-    cpu_load(&cpu, prog, sizeof(prog));
+    for(int i = 0; i <= 1000000; i++){
+        cpu_load(&cpu, prog, sizeof(prog));
+    }
     uint8_t t = (&cpu)->memory[9];
-    printf("%d", t);
+    //printf("%d \n", t);
+    clock_t end = clock();
+    double elapsed = (double)(end - start) / CLOCKS_PER_SEC;
+
+
+    printf("%f", elapsed);
 
     return 0;
 }
 
 void cpu_Reset(CPU *cpu){
-    cpu->A = 0;
-    cpu->B = 0;
+    cpu->A = cpu->B = 0;
     cpu->PC = 0;
     cpu->halt = 0;
-    memset(cpu->memory, 0, sizeof(cpu->memory));
+    memset(cpu->memory, 0, RAM_SIZE);
 }
 
 void cpu_load(CPU *cpu, uint8_t *prog, size_t size){
-    size = size > 256 ? 256 : size;
-    for(uint8_t i = 0; i < size; i++){
-        cpu->memory[i] = prog[i];
-    }
-    for(uint8_t i = 0; i < size; i++){
-        uint8_t opcode = cpu->memory[cpu->PC++];
-        cpu_load_execute(cpu, opcode);
-    }
-    cpu->halt = 0;
-    cpu_running(cpu);
+    cpu->PC = 0;
+    memcpy(cpu->memory, prog, size);
+    while (cpu->halt == 0 && cpu->PC < RAM_SIZE)
+        {
+            uint8_t opcode = cpu->memory[cpu->PC++];
+            cpu_load_execute(cpu, opcode);
+        }
 }
 
 void cpu_load_execute(CPU *cpu, uint8_t opcode){
-    if(opcode){
     switch (opcode)
         {
         case LDA: { // Load A
@@ -67,11 +68,13 @@ void cpu_load_execute(CPU *cpu, uint8_t opcode){
             break;
         }
         case STA: {
-            cpu->memory[cpu->PC++] = cpu->A;
+            uint8_t addr = cpu->memory[cpu->PC++];
+            cpu->memory[addr] = cpu->A;
             break;
         }
         case STB: {
-            cpu->memory[cpu->PC++] = cpu->B;
+            uint8_t addr = cpu->memory[cpu->PC++];
+            cpu->memory[addr] = cpu->B;
             break;
         }
         case ADD: { // ADD
@@ -126,7 +129,6 @@ void cpu_load_execute(CPU *cpu, uint8_t opcode){
             break;
         } 
         case NOP: // NOP
-            cpu->PC++;
             break;
         case JMP:
             cpu->PC = cpu->memory[cpu->PC++];
@@ -142,7 +144,7 @@ void cpu_load_execute(CPU *cpu, uint8_t opcode){
             }
             break;
         case NBEQ:
-            if (!cpu->memory[cpu->PC++] == cpu->memory[cpu->PC++]){
+            if (cpu->memory[cpu->PC++] != cpu->memory[cpu->PC++]){
                 cpu->PC = cpu->memory[cpu->PC++];
             }
             break;
@@ -152,22 +154,26 @@ void cpu_load_execute(CPU *cpu, uint8_t opcode){
         case DEB:
             cpu->B--;
             break;
-        case DEC:
-            cpu->memory[cpu->PC++]--;
+        case DEC: {
+            uint8_t addr = cpu->memory[cpu->PC++];
+            cpu->memory[addr]--;
             break;
+        }
         case INCRA:
             cpu->A++;
             break;
         case INCRB:
             cpu->B++;
             break;
-        case INCR:
-            cpu->memory[cpu->PC++]++;
+        case INCR: {
+            uint8_t addr = cpu->memory[cpu->PC++];
+            cpu->memory[addr]++;
             break;
-        case 0xFF:
+        }
+        case END:
             cpu->halt = 1;
             break;
         default:
             break;
-        }}   
+    }   
 }

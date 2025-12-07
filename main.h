@@ -25,6 +25,7 @@ typedef enum{
     INCR = 0x19,
     STA = 0x20,
     STB = 0x21,
+    END = 0xFF,
 }INSTRUCTIONS;
 
 #endif
